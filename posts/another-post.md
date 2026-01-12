@@ -2,7 +2,7 @@
 title: "Welcome to My Blog yeet"
 date: "2024-01-15"
 description: "This is an example blog post to demonstrate the markdown blog system."
-heroImage: "/example-guitar-flowers.jpg"
+heroImage: "/example-guitar-motherboard.jpg"
 ---
 
 # Welcome to My Blog yeet yeet

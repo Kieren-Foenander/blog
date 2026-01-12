@@ -6,6 +6,7 @@ export interface PostMetadata {
   title: string
   date: string
   description?: string
+  heroImage?: string
   [key: string]: string | number | boolean | undefined
 }
 
