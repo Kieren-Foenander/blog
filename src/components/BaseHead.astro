@@ -32,9 +32,22 @@ const { title, description, image = FallbackImage } = Astro.props;
 />
 <meta name="generator" content={Astro.generator} />
 
+<!-- Prevent theme flash: set data-theme before paint -->
+<script is:inline>
+	(function() {
+		var theme = 'light';
+		try {
+			var stored = localStorage.getItem('theme');
+			if (stored === 'dark' || stored === 'light') theme = stored;
+			else if (window.matchMedia('(prefers-color-scheme: dark)').matches) theme = 'dark';
+		} catch (e) {}
+		document.documentElement.setAttribute('data-theme', theme);
+	})();
+</script>
+
 <ClientRouter />
 
-<!-- Font preloads -->
+<!-- Font preloads (critical above-the-fold fonts) -->
 <link
   rel="preload"
   href="/fonts/atkinson-regular.woff"
@@ -47,6 +60,20 @@ const { title, description, image = FallbackImage } = Astro.props;
   href="/fonts/atkinson-bold.woff"
   as="font"
   type="font/woff"
+  crossorigin
+/>
+<link
+  rel="preload"
+  href="/fonts/lxgw-wenkai-lite-latin.woff2"
+  as="font"
+  type="font/woff2"
+  crossorigin
+/>
+<link
+  rel="preload"
+  href="/fonts/noto-serif-sc-400-latin.woff2"
+  as="font"
+  type="font/woff2"
   crossorigin
 />
 
