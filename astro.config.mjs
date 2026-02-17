@@ -5,10 +5,13 @@ import sitemap from '@astrojs/sitemap';
 import { defineConfig } from 'astro/config';
 
 import cloudflare from '@astrojs/cloudflare';
+import react from '@astrojs/react';
 
 // https://astro.build/config
+// API route has prerender: false for on-demand execution
 export default defineConfig({
   site: 'https://example.com',
-  integrations: [mdx(), sitemap()],
+  output: 'static',
+  integrations: [react(), mdx(), sitemap()],
   adapter: cloudflare(),
 });

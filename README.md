@@ -53,6 +53,18 @@ All commands are run from the root of the project, from a terminal:
 | `pnpm astro ...`       | Run CLI commands like `astro add`, `astro check` |
 | `pnpm astro -- --help` | Get help using the Astro CLI                     |
 
+## Environment variables
+
+### Wordle AI (`/wordle/ai`)
+
+The AI Wordle feature requires an OpenAI API key:
+
+- **Local dev (Astro)**: Create `.env` with `OPENAI_API_KEY=sk-...`
+- **Local dev (Wrangler)**: Create `.dev.vars` with `OPENAI_API_KEY=sk-...`
+- **Production (Cloudflare)**: Run `wrangler secret put OPENAI_API_KEY`
+
+See `.env.example` for reference.
+
 ## 👀 Want to learn more?
 
 Check out [our documentation](https://docs.astro.build) or jump into our [Discord server](https://astro.build/chat).

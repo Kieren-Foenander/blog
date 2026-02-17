@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../../layouts/BaseLayout.astro";
+import { SITE_TITLE } from "../../consts";
+import WordleAIPage from "../../components/Wordle/WordleAIPage.tsx";
+---
+
+<BaseLayout
+  title={`Wordle AI | ${SITE_TITLE}`}
+  description="Watch AI play Wordle - streamed thinking and tool calls"
+>
+  <div class="wordle-ai-wrapper">
+    <a href="/wordle" class="wordle-ai-back">← Play yourself</a>
+    <WordleAIPage client:load />
+  </div>
+</BaseLayout>
+
+<style>
+  .wordle-ai-wrapper {
+    padding: 0 1rem;
+  }
+  .wordle-ai-back {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: var(--accent, #6aaa64);
+    text-decoration: none;
+  }
+  .wordle-ai-back:hover {
+    text-decoration: underline;
+  }
+</style>

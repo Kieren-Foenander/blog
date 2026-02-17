@@ -1,0 +1,123 @@
+.wordle-ai-page {
+  display: flex;
+  gap: 2rem;
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.wordle-ai-game {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  flex-shrink: 0;
+}
+
+.wordle-ai-thought-panel {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+  border: 1px solid var(--border-color, #d3d6da);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+}
+
+.wordle-ai-thought-title {
+  margin: 0;
+  padding: 0.75rem 1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border-color, #d3d6da);
+  flex-shrink: 0;
+}
+
+.wordle-ai-thought-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  font-size: 0.85rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.wordle-ai-thinking {
+  color: #555;
+  font-style: italic;
+  margin-bottom: 0.5rem;
+}
+
+.wordle-ai-text {
+  margin-bottom: 0.5rem;
+}
+
+.wordle-ai-tool-call {
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: #6aaa64;
+}
+
+.wordle-ai-error {
+  padding: 0.5rem 1rem;
+  color: #c00;
+  background: rgba(204, 0, 0, 0.1);
+  border-radius: 4px;
+  margin: 0.5rem 1rem;
+}
+
+.wordle-ai-loading {
+  padding: 0.5rem 1rem;
+  font-style: italic;
+  color: #666;
+}
+
+.wordle-ai-stalled {
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--border-color, #d3d6da);
+  background: rgba(83, 141, 78, 0.08);
+  flex-shrink: 0;
+}
+
+.wordle-ai-stalled-message {
+  margin: 0 0 0.5rem 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.wordle-ai-stalled .wordle-continue {
+  margin: 0;
+}
+
+.wordle-key--display-only {
+  cursor: default;
+  pointer-events: none;
+}
+
+.wordle-continue {
+  padding: 0.5rem 1rem;
+  font-size: 0.9rem;
+  background: #538d4e;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.wordle-continue:hover {
+  background: #3d6b39;
+}
+
+@media (max-width: 700px) {
+  .wordle-ai-page {
+    flex-direction: column;
+  }
+
+  .wordle-ai-thought-panel {
+    max-height: 300px;
+  }
+}

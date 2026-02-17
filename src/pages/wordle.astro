@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { SITE_TITLE, SITE_DESCRIPTION } from "../consts";
+import WordleGame from "../components/Wordle/WordleGame.tsx";
+---
+
+<BaseLayout
+  title={`Wordle | ${SITE_TITLE}`}
+  description="Play Wordle - guess the five-letter word in six tries"
+>
+  <div class="wordle-wrapper">
+    <a href="/wordle/ai" class="wordle-ai-link">Watch AI play →</a>
+    <WordleGame client:load />
+  </div>
+</BaseLayout>
+
+<style>
+  .wordle-wrapper {
+    padding: 0 1rem;
+  }
+  .wordle-ai-link {
+    display: inline-block;
+    margin-bottom: 1rem;
+    color: var(--accent, #6aaa64);
+    text-decoration: none;
+  }
+  .wordle-ai-link:hover {
+    text-decoration: underline;
+  }
+</style>

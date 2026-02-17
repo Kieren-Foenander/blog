@@ -157,7 +157,7 @@ body {
 	margin-left: 35vw;
 	min-height: 100vh;
 	padding: 2.5rem 3rem 4rem;
-	max-width: 720px;
+	/* max-width: 720px; */
 }
 
 @media (max-width: 768px) {
