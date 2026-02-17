@@ -11,65 +11,69 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
 ---
 
 <html lang="en">
-	<head>
-		<BaseHead title={title} description={description} />
-		<style>
-			.hero-image {
-				width: 100%;
-				margin-bottom: 1.5rem;
-			}
-			.hero-image img {
-				display: block;
-				width: 100%;
-				height: auto;
-				border-radius: 8px;
-				border: 1px solid var(--border);
-			}
-			.prose {
-				color: var(--text);
-			}
-			.title-block {
-				margin-bottom: 2rem;
-			}
-			.title-block h1 {
-				margin: 0 0 0.5rem 0;
-			}
-			.date {
-				margin-bottom: 0.5rem;
-				font-size: 0.9rem;
-				color: var(--text-muted);
-			}
-			.last-updated-on {
-				font-style: italic;
-			}
-		</style>
-	</head>
+  <head>
+    <BaseHead title={title} description={description} image={heroImage} />
+    <style>
+      .hero-image {
+        width: 100%;
+        margin-bottom: 1.5rem;
+      }
+      .hero-image img {
+        display: block;
+        width: 100%;
+        height: auto;
+        border-radius: 8px;
+        border: 1px solid var(--border);
+      }
+      .prose {
+        color: var(--text);
+      }
+      .title-block {
+        margin-bottom: 2rem;
+      }
+      .title-block h1 {
+        margin: 0 0 0.5rem 0;
+      }
+      .date {
+        margin-bottom: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--text-muted);
+      }
+      .last-updated-on {
+        font-style: italic;
+      }
+    </style>
+  </head>
 
-	<body>
-		<Sidebar />
-		<main class="main-content">
-			<article>
-				{heroImage && (
-					<div class="hero-image">
-						<Image width={1020} height={510} src={heroImage} alt="" />
-					</div>
-				)}
-				<div class="prose">
-					<div class="title-block">
-						<div class="date">
-							<FormattedDate date={pubDate} />
-							{updatedDate && (
-								<div class="last-updated-on">
-									Updated <FormattedDate date={updatedDate} />
-								</div>
-							)}
-						</div>
-						<h1>{title}</h1>
-						<hr />
-					</div>
-					<slot />
-				</div>
-			</article>
-		</main>
-	</body>
+  <body>
+    <Sidebar />
+    <main class="main-content">
+      <article>
+        {
+          heroImage && (
+            <div class="hero-image">
+              <Image width={1020} height={510} src={heroImage} alt="" />
+            </div>
+          )
+        }
+        <div class="prose">
+          <div class="title-block">
+            <div class="date">
+              <FormattedDate date={pubDate} />
+              {
+                updatedDate && (
+                  <div class="last-updated-on">
+                    Updated <FormattedDate date={updatedDate} />
+                  </div>
+                )
+              }
+            </div>
+            <h1>{title}</h1>
+            <hr />
+          </div>
+          <slot />
+        </div>
+      </article>
+    </main>
+  </body>
 </html>
