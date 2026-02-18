@@ -1,12 +1,64 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat, fetchServerSentEvents, createChatClientOptions } from '@tanstack/ai-react';
-import { clientTools } from '@tanstack/ai-client';
-import { useWordleGame } from './useWordleGame';
-import { makeGuessDef, getGameStateDef } from './ai/wordleTools';
 import type { LetterResult } from './types';
 import { MAX_GUESSES, WORD_LENGTH } from './types';
 import './WordleGame.css';
 import './WordleAIPage.css';
+
+interface MakeGuessOutput {
+  success: boolean;
+  status: 'playing' | 'won' | 'lost';
+  gameState?: { guesses: string[]; feedback: LetterResult[][] };
+  answer?: string;
+}
+
+function useWordleStateFromMessages(
+  messages: Array<{
+    parts: Array<
+      | { type: string; name?: string; output?: unknown }
+      | { type: 'tool-result'; content?: string }
+    >;
+  }>
+) {
+  let latest: MakeGuessOutput | null = null;
+  for (const msg of messages) {
+    for (const part of msg.parts) {
+      if (part.type === 'tool-call' && part.name === 'make_guess' && part.output) {
+        const out = part.output as MakeGuessOutput;
+        if (out.gameState) latest = out;
+      }
+      if (part.type === 'tool-result' && 'content' in part && typeof part.content === 'string') {
+        try {
+          const out = JSON.parse(part.content) as MakeGuessOutput;
+          if (out.gameState) latest = out;
+        } catch {
+          /* ignore */
+        }
+      }
+    }
+  }
+  const guesses = latest?.gameState?.guesses ?? [];
+  const feedback = latest?.gameState?.feedback ?? [];
+  const status = latest?.status ?? 'playing';
+  const answer = latest?.answer ?? '';
+
+  const keyboardStatus: Record<string, LetterResult> = Object.create(null);
+  for (let rowIdx = 0; rowIdx < feedback.length; rowIdx++) {
+    const row = feedback[rowIdx]!;
+    const guess = guesses[rowIdx]!;
+    for (let i = 0; i < row.length; i++) {
+      const letter = guess[i];
+      if (!letter) continue;
+      const prev = keyboardStatus[letter];
+      const next = row[i]!;
+      if (prev === 'correct' || next === 'correct') keyboardStatus[letter] = 'correct';
+      else if (prev === 'present' || next === 'present') keyboardStatus[letter] = 'present';
+      else keyboardStatus[letter] = 'absent';
+    }
+  }
+
+  return { guesses, feedback, status, answer, keyboardStatus };
+}
 
 const KEYBOARD_ROWS = [
   ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
@@ -62,72 +114,59 @@ function Cell({
 }
 
 export default function WordleAIPage() {
-  const {
-    state,
-    submitGuessWord,
-    getGameStateSnapshot,
-    newGame,
-    keyboardStatus,
-  } = useWordleGame();
-
-  const [hasStarted, setHasStarted] = useState(false);
-  const thoughtPanelRef = useRef<HTMLDivElement>(null);
-  const prevGuessesLenRef = useRef(state.guesses.length);
-
-  const [isAnimating, setIsAnimating] = useState(false);
-
-  const makeGuessClient = makeGuessDef.client((input) => {
-    return submitGuessWord((input as { word: string }).word);
-  });
-
-  // const getGameStateClient = getGameStateDef.client(() => {
-  //   return getGameStateSnapshot();
-  // });
-
-  const tools = clientTools(makeGuessClient);
-
+  const requestBodyRef = useRef<Record<string, unknown>>({});
   const chatOptions = createChatClientOptions({
     connection: fetchServerSentEvents('/api/chat'),
-    tools,
+    body: requestBodyRef.current,
   });
 
   const { messages, sendMessage, isLoading, error } = useChat(chatOptions);
 
+  const { guesses, feedback, status, answer, keyboardStatus } =
+    useWordleStateFromMessages(messages);
+
+  const [hasStarted, setHasStarted] = useState(false);
+  const thoughtPanelRef = useRef<HTMLDivElement>(null);
+  const prevGuessesLenRef = useRef(guesses.length);
+  const [isAnimating, setIsAnimating] = useState(false);
+
   const handleStartGame = () => {
     setHasStarted(true);
+    requestBodyRef.current.newGame = true;
     sendMessage('Start playing Wordle. Keep going until you win or lose.');
   };
 
-  // Show Continue button when model may have stopped (game still playing, not loading, last message from assistant)
-  const lastMsg = messages.at(-1);
-  const isStuck =
-    state.status === 'playing' &&
-    !isLoading &&
-    state.guesses.length < MAX_GUESSES &&
-    lastMsg?.role === 'assistant';
-
   useEffect(() => {
-    if (state.guesses.length > prevGuessesLenRef.current) {
+    if (guesses.length > prevGuessesLenRef.current) {
       setIsAnimating(true);
       const id = setTimeout(() => {
         setIsAnimating(false);
-        prevGuessesLenRef.current = state.guesses.length;
+        prevGuessesLenRef.current = guesses.length;
       }, 900);
       return () => clearTimeout(id);
     }
-    prevGuessesLenRef.current = state.guesses.length;
-  }, [state.guesses.length]);
+    prevGuessesLenRef.current = guesses.length;
+  }, [guesses.length]);
 
   const handleNewGame = () => {
-    newGame();
+    requestBodyRef.current.newGame = true;
     sendMessage('New game. The board is reset. Start playing Wordle from the beginning.');
   };
 
+  // Clear newGame flag after request so it doesn't persist
   useEffect(() => {
-    thoughtPanelRef.current?.scrollTo({
-      top: thoughtPanelRef.current.scrollHeight,
-      behavior: 'smooth',
-    });
+    if (!isLoading) {
+      delete requestBodyRef.current.newGame;
+    }
+  }, [isLoading]);
+
+  useEffect(() => {
+    if (thoughtPanelRef.current) {
+      thoughtPanelRef.current.scrollTo({
+        top: thoughtPanelRef.current.scrollHeight,
+        behavior: 'smooth',
+      });
+    }
   }, [messages]);
 
   return (
@@ -149,16 +188,12 @@ export default function WordleAIPage() {
           {Array.from({ length: MAX_GUESSES }, (_, rowIdx) => (
             <div key={rowIdx} className="wordle-row" role="row">
               {Array.from({ length: WORD_LENGTH }, (_, colIdx) => {
-                const isSubmitted = rowIdx < state.guesses.length;
-                const isCurrentRow = !isSubmitted && rowIdx === state.guesses.length;
-                const letter = isSubmitted
-                  ? state.guesses[rowIdx]?.[colIdx]
-                  : isCurrentRow
-                    ? state.currentGuess[colIdx]
-                    : undefined;
-                const result = state.feedback[rowIdx]?.[colIdx];
+                const isSubmitted = rowIdx < guesses.length;
+                const isCurrentRow = false;
+                const letter = isSubmitted ? guesses[rowIdx]?.[colIdx] : undefined;
+                const result = feedback[rowIdx]?.[colIdx];
                 const isSubmittedRow = isSubmitted && !!result;
-                const isLastSubmittedRow = isSubmitted && rowIdx === state.guesses.length - 1;
+                const isLastSubmittedRow = isSubmitted && rowIdx === guesses.length - 1;
 
                 return (
                   <Cell
@@ -176,10 +211,10 @@ export default function WordleAIPage() {
           ))}
         </div>
 
-        {hasStarted && (state.status === 'won' || state.status === 'lost') && (
+        {hasStarted && (status === 'won' || status === 'lost') && (
           <div className="wordle-result">
             <p>
-              {state.status === 'won' ? 'AI won!' : `The word was ${state.answer.toUpperCase()}`}
+              {status === 'won' ? 'AI won!' : `The word was ${answer.toUpperCase()}`}
             </p>
             <button
               type="button"
@@ -216,14 +251,14 @@ export default function WordleAIPage() {
         </div>
       </div>
 
-      <div className="wordle-ai-thought-panel" ref={thoughtPanelRef}>
+      <div className="wordle-ai-thought-panel">
         <h3 className="wordle-ai-thought-title">AI thinking</h3>
         {error && (
           <div className="wordle-ai-error">
             {error.message}
           </div>
         )}
-        <div className="wordle-ai-thought-content">
+        <div className="wordle-ai-thought-content" ref={thoughtPanelRef}>
           {messages.map((message) =>
             message.parts.map((part, idx) => {
               if (part.type === 'thinking') {
@@ -255,18 +290,8 @@ export default function WordleAIPage() {
           )}
         </div>
         {isLoading && (
-          <div className="wordle-ai-loading">Thinking…</div>
-        )}
-        {isStuck && (
-          <div className="wordle-ai-stalled">
-            <p className="wordle-ai-stalled-message">The AI stopped responding. Tap continue to prompt it to make its next guess.</p>
-            <button
-              type="button"
-              className="wordle-continue"
-              onClick={() => sendMessage('Continue. Make your next guess using make_guess.')}
-            >
-              Continue
-            </button>
+          <div className="wordle-ai-loading">
+            <span className="wordle-ai-loading-text">Thinking…</span>
           </div>
         )}
       </div>

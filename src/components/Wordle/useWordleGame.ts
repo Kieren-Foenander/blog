@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useReducer } from 'react';
+import { useReducer, useRef } from 'react';
 import { evaluateGuess } from './evaluateGuess';
 import type { GameState, GameStatus, LetterResult } from './types';
 import { MAX_GUESSES, WORD_LENGTH } from './types';
@@ -107,18 +107,20 @@ export function useWordleGame() {
   const [state, dispatch] = useReducer(reducer, undefined, () =>
     initialState(randomAnswer())
   );
+  const stateRef = useRef(state);
+  stateRef.current = state;
 
-  const addLetter = useCallback((letter: string) => {
+  const addLetter = (letter: string) => {
     const l = letter.toLowerCase();
     if (!/^[a-z]$/.test(l)) return;
     dispatch({ type: 'ADD_LETTER', letter: l });
-  }, []);
+  };
 
-  const removeLetter = useCallback(() => {
+  const removeLetter = () => {
     dispatch({ type: 'REMOVE_LETTER' });
-  }, []);
+  };
 
-  const submitGuess = useCallback(() => {
+  const submitGuess = () => {
     if (state.status !== 'playing') return;
 
     const guess = state.currentGuess.toLowerCase();
@@ -135,42 +137,47 @@ export function useWordleGame() {
     console.log('state.answer', state.answer);
     const fb = evaluateGuess(guess, state.answer);
     dispatch({ type: 'ACCEPT_GUESS', guess, feedback: fb });
-  }, [state.answer, state.currentGuess, state.status]);
+  };
 
-  const newGame = useCallback(() => {
+  const newGame = () => {
     dispatch({ type: 'NEW_GAME', answer: randomAnswer() });
-  }, []);
+  };
 
-  const setMessage = useCallback((message?: string) => {
+  const setMessage = (message?: string) => {
     dispatch({ type: 'SET_MESSAGE', message });
-  }, []);
+  };
 
-  const keyboardStatus = useMemo(() => {
-    const map: Record<string, LetterResult> = Object.create(null);
-    for (let rowIdx = 0; rowIdx < state.feedback.length; rowIdx++) {
-      const row = state.feedback[rowIdx]!;
-      const guess = state.guesses[rowIdx]!;
-      for (let i = 0; i < row.length; i++) {
-        const letter = guess[i];
-        if (!letter) continue;
-        map[letter] = mergeLetterResult(map[letter], row[i]!);
-      }
+  const keyboardStatusMap: Record<string, LetterResult> = Object.create(null);
+  for (let rowIdx = 0; rowIdx < state.feedback.length; rowIdx++) {
+    const row = state.feedback[rowIdx]!;
+    const guess = state.guesses[rowIdx]!;
+    for (let i = 0; i < row.length; i++) {
+      const letter = guess[i];
+      if (!letter) continue;
+      keyboardStatusMap[letter] = mergeLetterResult(keyboardStatusMap[letter], row[i]!);
     }
-    return map;
-  }, [state.feedback, state.guesses]);
+  }
+  const keyboardStatus = keyboardStatusMap;
 
   /** Submit a full word directly (for AI tooling). Returns structured result. */
-  const submitGuessWord = useCallback(
+  const submitGuessWord = (
     (word: string): {
       success: boolean;
       feedback?: LetterResult[];
       status: GameStatus;
       message?: string;
+      gameState?: {
+        guesses: string[];
+        feedback: LetterResult[][];
+        guessNumber: number;
+        guessesRemaining: number;
+      };
     } => {
-      if (state.status !== 'playing') {
+      const currentState = stateRef.current;
+      if (currentState.status !== 'playing') {
         return {
           success: false,
-          status: state.status,
+          status: currentState.status,
           message: 'Game is not in progress',
         };
       }
@@ -191,21 +198,38 @@ export function useWordleGame() {
         };
       }
 
-      const fb = evaluateGuess(guess, state.answer);
+      const fb = evaluateGuess(guess, currentState.answer);
       dispatch({ type: 'ACCEPT_GUESS', guess, feedback: fb });
 
-      const nextGuesses = [...state.guesses, guess];
+      const nextGuesses = [...currentState.guesses, guess];
+      const nextFeedback = [...currentState.feedback, fb];
       const won = fb.every((r) => r === 'correct');
       const lost = !won && nextGuesses.length >= MAX_GUESSES;
       const status: GameStatus = won ? 'won' : lost ? 'lost' : 'playing';
 
-      return { success: true, feedback: fb, status };
-    },
-    [state.answer, state.guesses, state.status]
+      stateRef.current = {
+        ...currentState,
+        guesses: nextGuesses,
+        feedback: nextFeedback,
+        status,
+      };
+
+      return {
+        success: true,
+        feedback: fb,
+        status,
+        gameState: {
+          guesses: nextGuesses,
+          feedback: nextFeedback,
+          guessNumber: nextGuesses.length,
+          guessesRemaining: status === 'playing' ? MAX_GUESSES - nextGuesses.length : 0,
+        },
+      };
+    }
   );
 
   /** Snapshot of game state for AI tooling. */
-  const getGameStateSnapshot = useCallback(() => {
+  const getGameStateSnapshot = () => {
     return {
       guesses: state.guesses,
       feedback: state.feedback,
@@ -213,7 +237,7 @@ export function useWordleGame() {
       keyboardStatus,
       guessesRemaining: MAX_GUESSES - state.guesses.length,
     };
-  }, [state.guesses, state.feedback, state.status, keyboardStatus]);
+  };
 
   return {
     state,

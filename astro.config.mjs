@@ -12,6 +12,14 @@ import react from '@astrojs/react';
 export default defineConfig({
   site: 'https://example.com',
   output: 'static',
-  integrations: [react(), mdx(), sitemap()],
+  integrations: [
+    react({
+      babel: {
+        plugins: [['babel-plugin-react-compiler', { target: '19' }]],
+      },
+    }),
+    mdx(),
+    sitemap(),
+  ],
   adapter: cloudflare(),
 });

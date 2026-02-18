@@ -2,7 +2,6 @@ import { createOpenaiChat } from '@tanstack/ai-openai';
 
 export type AIProvider = 'openai';
 
-const DEFAULT_MODEL = 'gpt-5-mini' as const;
 
 /**
  * Get a chat adapter for the specified provider.
@@ -25,7 +24,7 @@ export function getChatAdapter(
 
   switch (provider) {
     case 'openai':
-      return createOpenaiChat(DEFAULT_MODEL, key);
+      return createOpenaiChat('gpt-5-mini', key);
     default:
       throw new Error(`Unknown AI provider: ${provider}`);
   }

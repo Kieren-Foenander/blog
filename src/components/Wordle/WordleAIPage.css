@@ -72,7 +72,46 @@
 .wordle-ai-loading {
   padding: 0.5rem 1rem;
   font-style: italic;
-  color: #666;
+}
+
+.wordle-ai-loading-text {
+  display: inline-block;
+  font-weight: 600;
+  color: #ededed;
+  background: linear-gradient(
+    90deg,
+    #ededed 0%,
+    #ededed 35%,
+    #d2d2d7 45%,
+    #a7a2a4 50%,
+    #d2d2d7 55%,
+    #ededed 65%,
+    #ededed 100%
+  );
+  background-size: 400% 100%;
+  background-repeat: no-repeat;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: wordle-ai-shimmer 1.5s linear infinite;
+}
+
+@supports not (background-clip: text) {
+  .wordle-ai-loading-text {
+    -webkit-text-fill-color: unset;
+    color: #ededed;
+    background: none;
+    animation: none;
+  }
+}
+
+@keyframes wordle-ai-shimmer {
+  0% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }
 
 .wordle-ai-stalled {
