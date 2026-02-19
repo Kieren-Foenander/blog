@@ -252,7 +252,7 @@ export default function WordleAIPage() {
       </div>
 
       <div className="wordle-ai-thought-panel">
-        <h3 className="wordle-ai-thought-title">AI thinking</h3>
+        <h3 className={`wordle-ai-thought-title ${isLoading ? 'wordle-ai-loading wordle-ai-loading-text' : ''}`}>AI thinking</h3>
         {error && (
           <div className="wordle-ai-error">
             {error.message}
@@ -289,11 +289,6 @@ export default function WordleAIPage() {
             })
           )}
         </div>
-        {isLoading && (
-          <div className="wordle-ai-loading">
-            <span className="wordle-ai-loading-text">Thinking…</span>
-          </div>
-        )}
       </div>
     </div>
   );

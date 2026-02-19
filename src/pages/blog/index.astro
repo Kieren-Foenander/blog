@@ -56,6 +56,8 @@ const posts = (await getCollection("blog")).sort(
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
   }
 
   .post-card {

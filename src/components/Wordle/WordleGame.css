@@ -4,7 +4,7 @@
   align-items: center;
   gap: 1.5rem;
   padding: 1.5rem;
-  max-width: 500px;
+  max-width: 31rem;
   margin: 0 auto;
 }
 
@@ -21,7 +21,7 @@
   align-items: center;
   justify-content: center;
   padding: 0.5rem 1rem;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   font-size: 0.9rem;
 }
 
@@ -32,12 +32,12 @@
 .wordle-grid {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 0.25rem;
 }
 
 .wordle-row {
   display: flex;
-  gap: 5px;
+  gap: 0.25rem;
   justify-content: center;
 }
 
@@ -45,13 +45,13 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 62px;
-  height: 62px;
-  border: 2px solid var(--border-color, #d3d6da);
+  width: 4rem;
+  height: 4rem;
+  border: 0.125rem solid var(--border-color, #d3d6da);
   font-size: 2rem;
   font-weight: 700;
   text-transform: uppercase;
-  perspective: 1000px;
+  perspective: 62.5rem;
 }
 
 .wordle-cell--filled {
@@ -102,12 +102,12 @@
   justify-content: center;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
-  border-radius: 2px;
+  border-radius: 0.125rem;
 }
 
 .wordle-cell-front {
   background: #fff;
-  border: 2px solid #878a8c;
+  border: 0.125rem solid #878a8c;
   color: #212121;
   transform: rotateX(0deg);
 }
@@ -115,7 +115,7 @@
 .wordle-cell-back {
   transform: rotateX(180deg);
   color: white;
-  border: 2px solid transparent;
+  border: 0.125rem solid transparent;
 }
 
 .wordle-cell-back--correct {
@@ -167,7 +167,7 @@
   color: white;
   background: #6aaa64;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   cursor: pointer;
 }
 
@@ -178,29 +178,32 @@
 .wordle-keyboard {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 0.5rem;
   width: 100%;
+  max-width: 100%;
 }
 
 .wordle-keyboard-row {
   display: flex;
-  gap: 6px;
+  gap: 0.5rem;
   justify-content: center;
+  min-width: 0;
 }
 
 .wordle-key {
+  font-family: monospace;
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 43px;
-  height: 58px;
+  width: 2rem;
+  height: 3.5rem;
   padding: 0 0.5rem;
   font-size: 0.85rem;
   font-weight: 600;
   text-transform: uppercase;
-  background: #d3d6da;
+  background: #a7a6a6;
   border: none;
-  border-radius: 4px;
+  border-radius: 0.25rem;
   cursor: pointer;
 }
 
@@ -214,7 +217,9 @@
 }
 
 .wordle-key--wide {
-  min-width: 65px;
+  min-width: 4rem;
+  flex: 1.5 1 0;
+  max-width: 4.5rem;
   font-size: 0.75rem;
 }
 

@@ -151,12 +151,35 @@
   background: #3d6b39;
 }
 
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   .wordle-ai-page {
     flex-direction: column;
+    position: relative;
   }
 
+  /* Overlay the AI thinking panel on top of the keyboard with blurred backdrop */
   .wordle-ai-thought-panel {
-    max-height: 300px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    max-height: min(45vh, 220px);
+    background: rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
+    border-bottom: none;
+    border-radius: 8px 8px 0 0;
+    z-index: 10;
+  }
+
+  /* Ensure panel content remains readable on blurred backdrop */
+  .wordle-ai-thought-title {
+    color: inherit;
+  }
+
+  .wordle-ai-thinking {
+    color: inherit;
+    opacity: 0.9;
   }
 }
