@@ -175,6 +175,39 @@
   background: #5b9a55;
 }
 
+.wordle-new-game:disabled,
+.wordle-reset:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.wordle-result-actions {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.wordle-reset {
+  padding: 0.5rem 1.5rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--text-muted, #555);
+  background: transparent;
+  border: 1px solid var(--border-color, #d3d6da);
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.wordle-reset:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.wordle-reset-inline {
+  font-size: 0.9rem;
+  padding: 0.4rem 1rem;
+}
+
 .wordle-keyboard {
   display: flex;
   flex-direction: column;

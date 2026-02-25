@@ -74,7 +74,7 @@ export const POST: APIRoute = async (context) => {
       if (!allowed) {
         return new Response(
           JSON.stringify({
-            error: "You've used your 2 free AI Wordle games. Thanks for playing!",
+            error: "alright, you've had your fun, try play yourself",
           }),
           {
             status: 429,

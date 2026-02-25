@@ -7,10 +7,10 @@ import './WordleGame.css';
 import './WordleGameAI.css';
 
 const MODEL_OPTIONS: { value: AIProvider; label: string }[] = [
-  { value: 'anthropic', label: 'Claude Sonnet 4.5' },
   { value: 'openai', label: 'GPT 5 Mini' },
-  { value: 'gemini', label: 'Gemini 3.0' },
   { value: 'workers-ai', label: 'GLM 4.7 Flash' },
+  { value: 'anthropic', label: 'Claude Sonnet 4.5 (not enough funds)' },
+  { value: 'gemini', label: 'Gemini 2.5 flash lite' },
 ];
 
 interface MakeGuessOutput {
@@ -122,7 +122,7 @@ function Cell({
 }
 
 export default function WordleGameAI() {
-  const [provider, setProvider] = useState<AIProvider>('anthropic');
+  const [provider, setProvider] = useState<AIProvider>('openai');
   const requestBodyRef = useRef<Record<string, unknown>>({ provider });
   const chatOptions = createChatClientOptions({
     connection: fetchServerSentEvents('/api/chat', {
@@ -138,7 +138,7 @@ export default function WordleGameAI() {
     body: requestBodyRef.current,
   });
 
-  const { messages, sendMessage, isLoading, error } = useChat(chatOptions);
+  const { messages, sendMessage, isLoading, error, clear } = useChat(chatOptions);
 
   const { guesses, feedback, status, answer, keyboardStatus } =
     useWordleStateFromMessages(messages);
@@ -173,6 +173,11 @@ export default function WordleGameAI() {
   const handleNewGame = () => {
     requestBodyRef.current.newGame = true;
     sendMessage('New game. The board is reset. Start playing Wordle from the beginning.');
+  };
+
+  const handleReset = () => {
+    clear();
+    setHasStarted(false);
   };
 
   // Clear newGame flag after request so it doesn't persist
@@ -258,15 +263,36 @@ export default function WordleGameAI() {
             <p>
               {status === 'won' ? 'AI won!' : `The word was ${answer.toUpperCase()}`}
             </p>
-            <button
-              type="button"
-              className="wordle-new-game"
-              onClick={handleNewGame}
-              disabled={isLoading}
-            >
-              New Game
-            </button>
+            <div className="wordle-result-actions">
+              <button
+                type="button"
+                className="wordle-new-game"
+                onClick={handleNewGame}
+                disabled={isLoading}
+              >
+                New Game
+              </button>
+              <button
+                type="button"
+                className="wordle-reset"
+                onClick={handleReset}
+                disabled={isLoading}
+              >
+                Reset
+              </button>
+            </div>
           </div>
+        )}
+
+        {hasStarted && (status === 'playing' || error) && (
+          <button
+            type="button"
+            className="wordle-reset wordle-reset-inline"
+            onClick={handleReset}
+            disabled={isLoading}
+          >
+            Reset game
+          </button>
         )}
 
         <div className="wordle-keyboard" role="group" aria-label="Keyboard status">
