@@ -2,47 +2,95 @@ import type { APIRoute } from 'astro';
 import {
   chat,
   toServerSentEventsResponse,
-  type ConstrainedModelMessage,
+  type ModelMessage,
 } from '@tanstack/ai';
-import { getChatAdapter } from '../../lib/ai/adapters';
+import { getWordleChatConfig, type WordleEnv } from '../../lib/ai/adapters';
 import { makeGuessDef } from '../../components/Wordle/ai/wordleTools';
 import { evaluateGuess } from '../../components/Wordle/evaluateGuess';
 import { getOrCreateGame } from '../../lib/wordle/gameStore';
 import { VALID_GUESSES } from '../../lib/wordle/words';
 import { MAX_GUESSES } from '../../components/Wordle/types';
-import type { OpenAIMessageMetadataByModality } from '@tanstack/ai-openai';
 
 export const prerender = false;
 
-const WORDLE_SYSTEM_PROMPT = `You are an expert Wordle player agent. it is a game where you need to guess a word in 6 attempts or less. The word is 5 letters long.
-You have been given a tool make_guess which you can use to make a guess. The tool will return a feedback on your guess and the game state. if this tool does not return a status of "playing" you should continue making guesses until the game status is "win" or "lose".
-Before each guess give a very short and concise explanation to the user how you are thinking through your guesses and optimize for information gain to achieve the word in a few guesses as possible. 
-After each guess, use the feedback to think about optimising your next guess for achieving the fewest guesses possible and then guess again.
-After winning be really smug about it. After losing be really disappointed and hard on yourself for not being able to guess the word.
-IT IS EXTREMELY IMPORTANT THAT YOU DO NOT STOP GUESSING UNTIL THE GAME IS IN A STATE OF "WON" OR "LOST".
-`;
+const MAX_AI_GAMES_PER_IP = 5;
+
+function getClientIdentifier(request: Request): string {
+  // Cloudflare sets this with the real client IP
+  const cfIp = request.headers.get('CF-Connecting-IP');
+  if (cfIp?.trim()) return cfIp.trim();
+  // Fallback for proxies
+  const forwarded = request.headers.get('X-Forwarded-For');
+  if (forwarded?.trim()) return forwarded.split(',')[0]?.trim() ?? 'unknown';
+  // Local dev: platformProxy may not set CF-Connecting-IP; use localhost so rate limit still applies
+  // uncomment this to test locally
+  // try {
+  //   const url = new URL(request.url);
+  //   if (url.hostname === 'localhost' || url.hostname === '127.0.0.1') {
+  //     return '127.0.0.1';
+  //   }
+  // } catch {
+  //   /* ignore */
+  // }
+  return 'unknown';
+}
+
+async function checkRateLimit(
+  kv: { get: (k: string) => Promise<string | null>; put: (k: string, v: string) => Promise<void> },
+  identifier: string
+): Promise<{ allowed: boolean; count: number }> {
+  const key = `wordle-ai:${identifier}`;
+  const raw = await kv.get(key);
+  const count = raw ? Math.min(parseInt(raw, 10) || 0, MAX_AI_GAMES_PER_IP) : 0;
+  if (count >= MAX_AI_GAMES_PER_IP) {
+    return { allowed: false, count };
+  }
+  await kv.put(key, String(count + 1));
+  return { allowed: true, count: count + 1 };
+}
 
 export const POST: APIRoute = async (context) => {
   const { request, locals } = context;
 
-  const apiKey =
-    (locals as { runtime?: { env?: { OPENAI_API_KEY?: string } } })?.runtime?.env
-      ?.OPENAI_API_KEY ?? (typeof process !== 'undefined' ? process.env.OPENAI_API_KEY : undefined);
+  const env = (locals as { runtime?: { env?: Record<string, unknown> } })?.runtime
+    ?.env;
 
-  if (!apiKey) {
+  if (!env?.AI) {
     return new Response(
-      JSON.stringify({ error: 'OPENAI_API_KEY is not configured' }),
+      JSON.stringify({
+        error:
+          'AI binding not configured. Add "ai": { "binding": "AI" } to wrangler.jsonc and run with Cloudflare runtime (wrangler dev / deploy).',
+      }),
       { status: 500, headers: { 'Content-Type': 'application/json' } }
     );
+  }
+
+  // Rate limit: max 2 AI games per IP
+  const kv = env.WORDLE_RATE_LIMIT as { get: (k: string) => Promise<string | null>; put: (k: string, v: string) => Promise<void> } | undefined;
+  const identifier = getClientIdentifier(request);
+  if (kv) {
+    try {
+      const { allowed } = await checkRateLimit(kv, identifier);
+      if (!allowed) {
+        return new Response(
+          JSON.stringify({
+            error: "You've used your 2 free AI Wordle games. Thanks for playing!",
+          }),
+          {
+            status: 429,
+            headers: { 'Content-Type': 'application/json' },
+          }
+        );
+      }
+    } catch {
+      // If KV fails, allow the request (fail open) so users aren't blocked
+    }
   }
 
   try {
     const body = await request.json();
     const { messages, data } = body as {
-      messages: ConstrainedModelMessage<{
-        inputModalities: ["text", "image"];
-        messageMetadataByModality: OpenAIMessageMetadataByModality;
-    }>[];
+      messages: ModelMessage[];
       data?: { provider?: string; conversationId?: string; newGame?: boolean };
     };
 
@@ -54,7 +102,7 @@ export const POST: APIRoute = async (context) => {
     }
 
     const provider = (data?.provider as string) ?? 'openai';
-    const adapter = getChatAdapter(provider, apiKey);
+    const chatConfig = getWordleChatConfig(provider, env as unknown as WordleEnv);
 
     const conversationId =
       (data?.conversationId as string)?.trim() || `wordle-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
@@ -120,35 +168,10 @@ export const POST: APIRoute = async (context) => {
     });
 
     const stream = chat({
-      adapter,
-      messages: messages,
+      ...chatConfig,
+      messages: messages as never,
       conversationId,
-      systemPrompts: [WORDLE_SYSTEM_PROMPT],
       tools: [makeGuess],
-      agentLoopStrategy: (data) => {
-      // Find the most recent make_guess tool result and check status
-      for (let i = data.messages.length - 1; i >= 0; i--) {
-        const msg = data.messages[i];
-        if (msg.role === 'tool' && typeof msg.content === 'string') {
-          try {
-            const result = JSON.parse(msg.content) as {
-              status?: 'playing' | 'won' | 'lost';
-            };
-            if (result.status === 'playing') return true; // continue
-            if (result.status === 'won' || result.status === 'lost')
-              return false; // stop
-            // No status (unexpected), continue to be safe
-            return true;
-          } catch {
-            return true;
-          }
-        }
-      }
-      return true; // No tool result yet, continue
-    },
-      modelOptions: {
-        reasoning: { effort: 'low', summary: 'auto' },
-      },
     });
 
     return toServerSentEventsResponse(stream);

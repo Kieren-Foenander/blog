@@ -1,16 +1,18 @@
 {
-	"main": "dist/_worker.js/index.js",
-	"name": "blog",
+  "main": "dist/_worker.js/index.js",
+  "name": "blog",
   "compatibility_date": "2026-02-16",
-  "compatibility_flags": [
-    "nodejs_compat",
-    "global_fetch_strictly_public"
-  ],
-	"assets": {
-		"binding": "ASSETS",
-		"directory": "./dist"
-	},
-	"observability": {
-    "enabled": true
-  }
+  "compatibility_flags": ["nodejs_compat", "global_fetch_strictly_public"],
+  "assets": { "binding": "ASSETS", "directory": "./dist" },
+  "observability": { "enabled": true },
+  "ai": { "binding": "AI" },
+  "vars": { "AI_GATEWAY_ID": "wordle-gateway" },
+  "kv_namespaces": [
+    {
+      "binding": "WORDLE_RATE_LIMIT",
+      "id": "a0da25b2fc4040b1bc086269b53938a3",
+      "preview_id": "420e43d49ac040b2841ee4a73185dbcf",
+      "remote": true
+    }
+  ]
 }

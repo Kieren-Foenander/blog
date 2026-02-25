@@ -1,9 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
 import { useChat, fetchServerSentEvents, createChatClientOptions } from '@tanstack/ai-react';
+import type { AIProvider } from '../../lib/ai/adapters';
 import type { LetterResult } from './types';
 import { MAX_GUESSES, WORD_LENGTH } from './types';
 import './WordleGame.css';
 import './WordleAIPage.css';
+
+const MODEL_OPTIONS: { value: AIProvider; label: string }[] = [
+  { value: 'anthropic', label: 'Claude Sonnet 4.5' },
+  { value: 'openai', label: 'GPT 5 Mini' },
+  { value: 'gemini', label: 'Gemini 3.0' },
+  { value: 'workers-ai', label: 'GLM 4.7 Flash' },
+];
 
 interface MakeGuessOutput {
   success: boolean;
@@ -114,9 +122,19 @@ function Cell({
 }
 
 export default function WordleAIPage() {
-  const requestBodyRef = useRef<Record<string, unknown>>({});
+  const [provider, setProvider] = useState<AIProvider>('anthropic');
+  const requestBodyRef = useRef<Record<string, unknown>>({ provider });
   const chatOptions = createChatClientOptions({
-    connection: fetchServerSentEvents('/api/chat'),
+    connection: fetchServerSentEvents('/api/chat', {
+      fetchClient: async (url, init) => {
+        const res = await fetch(url, init);
+        if (!res.ok && res.status === 429) {
+          const data = (await res.json().catch(() => ({}))) as { error?: string };
+          throw new Error(data.error ?? "Rate limit exceeded. You've used your 2 free AI games.");
+        }
+        return res;
+      },
+    }),
     body: requestBodyRef.current,
   });
 
@@ -126,6 +144,10 @@ export default function WordleAIPage() {
     useWordleStateFromMessages(messages);
 
   const [hasStarted, setHasStarted] = useState(false);
+
+  useEffect(() => {
+    requestBodyRef.current.provider = provider;
+  }, [provider]);
   const thoughtPanelRef = useRef<HTMLDivElement>(null);
   const prevGuessesLenRef = useRef(guesses.length);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -174,6 +196,26 @@ export default function WordleAIPage() {
       <div className="wordle-ai-game">
         <h2 className="wordle-title">Wordle (AI)</h2>
 
+        {!hasStarted ? (
+          <div className="wordle-ai-model-select">
+            <label htmlFor="wordle-model-select" className="wordle-ai-model-label">
+              Model
+            </label>
+            <select
+              id="wordle-model-select"
+              className="wordle-ai-model-select-input"
+              value={provider}
+              onChange={(e) => setProvider(e.target.value as AIProvider)}
+              aria-label="Select AI model"
+            >
+              {MODEL_OPTIONS.map(({ value, label }) => (
+                <option key={value} value={value}>
+                  {label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : null}
         {!hasStarted ? (
           <button
             type="button"
@@ -254,7 +296,10 @@ export default function WordleAIPage() {
       <div className="wordle-ai-thought-panel">
         <h3 className={`wordle-ai-thought-title ${isLoading ? 'wordle-ai-loading wordle-ai-loading-text' : ''}`}>AI thinking</h3>
         {error && (
-          <div className="wordle-ai-error">
+          <div
+            className="wordle-ai-error"
+            role="alert"
+          >
             {error.message}
           </div>
         )}

@@ -14,6 +14,29 @@
   flex-shrink: 0;
 }
 
+.wordle-ai-model-select {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.wordle-ai-model-label {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--text-muted, #555);
+}
+
+.wordle-ai-model-select-input {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.95rem;
+  border: 1px solid var(--border-color, #d3d6da);
+  border-radius: 6px;
+  background: var(--bg, #fff);
+  color: inherit;
+  cursor: pointer;
+}
+
 .wordle-ai-thought-panel {
   flex: 1;
   min-width: 0;
