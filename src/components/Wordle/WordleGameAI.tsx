@@ -4,7 +4,7 @@ import type { AIProvider } from '../../lib/ai/adapters';
 import type { LetterResult } from './types';
 import { MAX_GUESSES, WORD_LENGTH } from './types';
 import './WordleGame.css';
-import './WordleAIPage.css';
+import './WordleGameAI.css';
 
 const MODEL_OPTIONS: { value: AIProvider; label: string }[] = [
   { value: 'anthropic', label: 'Claude Sonnet 4.5' },
@@ -121,7 +121,7 @@ function Cell({
   );
 }
 
-export default function WordleAIPage() {
+export default function WordleGameAI() {
   const [provider, setProvider] = useState<AIProvider>('anthropic');
   const requestBodyRef = useRef<Record<string, unknown>>({ provider });
   const chatOptions = createChatClientOptions({

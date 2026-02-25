@@ -1,7 +1,7 @@
 ---
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { SITE_TITLE } from "../../consts";
-import WordleAIPage from "../../components/Wordle/WordleAIPage.tsx";
+import WordleGameAI from "../../components/Wordle/WordleGameAI.tsx";
 ---
 
 <BaseLayout
@@ -10,7 +10,7 @@ import WordleAIPage from "../../components/Wordle/WordleAIPage.tsx";
 >
   <div class="wordle-ai-wrapper">
     <a href="/wordle" class="wordle-ai-back">← Play yourself</a>
-    <WordleAIPage client:load />
+    <WordleGameAI client:load />
   </div>
 </BaseLayout>
 

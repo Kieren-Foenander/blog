@@ -1,9 +1,11 @@
 .wordle-ai-page {
   display: flex;
-  gap: 2rem;
+  flex-direction: column;
+  gap: 0;
   max-width: 900px;
   margin: 0 auto;
   padding: 1.5rem;
+  position: relative;
 }
 
 .wordle-ai-game {
@@ -38,14 +40,21 @@
 }
 
 .wordle-ai-thought-panel {
-  flex: 1;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  max-height: 500px;
-  border: 1px solid var(--border-color, #d3d6da);
-  border-radius: 8px;
-  background: rgba(0, 0, 0, 0.02);
+  max-height: min(45vh, 220px);
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
+  border-bottom: none;
+  border-radius: 8px 8px 0 0;
+  z-index: 10;
   overflow: hidden;
 }
 
@@ -54,8 +63,9 @@
   padding: 0.75rem 1rem;
   font-size: 0.9rem;
   font-weight: 600;
-  border-bottom: 1px solid var(--border-color, #d3d6da);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .wordle-ai-thought-content {
@@ -69,19 +79,20 @@
 }
 
 .wordle-ai-thinking {
-  color: #555;
+  color: rgba(255, 255, 255, 0.9);
   font-style: italic;
   margin-bottom: 0.5rem;
 }
 
 .wordle-ai-text {
   margin-bottom: 0.5rem;
+  color: rgba(255, 255, 255, 0.95);
 }
 
 .wordle-ai-tool-call {
   margin-bottom: 0.5rem;
   font-weight: 500;
-  color: #6aaa64;
+  color: #9ede94;
 }
 
 .wordle-ai-error {
@@ -100,16 +111,16 @@
 .wordle-ai-loading-text {
   display: inline-block;
   font-weight: 600;
-  color: #ededed;
+  color: rgba(255, 255, 255, 0.9);
   background: linear-gradient(
     90deg,
-    #ededed 0%,
-    #ededed 35%,
-    #d2d2d7 45%,
-    #a7a2a4 50%,
-    #d2d2d7 55%,
-    #ededed 65%,
-    #ededed 100%
+    rgba(255, 255, 255, 0.5) 0%,
+    rgba(255, 255, 255, 0.5) 35%,
+    rgba(255, 255, 255, 0.9) 45%,
+    #fff 50%,
+    rgba(255, 255, 255, 0.9) 55%,
+    rgba(255, 255, 255, 0.5) 65%,
+    rgba(255, 255, 255, 0.5) 100%
   );
   background-size: 400% 100%;
   background-repeat: no-repeat;
@@ -122,7 +133,7 @@
 @supports not (background-clip: text) {
   .wordle-ai-loading-text {
     -webkit-text-fill-color: unset;
-    color: #ededed;
+    color: rgba(255, 255, 255, 0.9);
     background: none;
     animation: none;
   }
@@ -174,35 +185,3 @@
   background: #3d6b39;
 }
 
-@media (max-width: 900px) {
-  .wordle-ai-page {
-    flex-direction: column;
-    position: relative;
-  }
-
-  /* Overlay the AI thinking panel on top of the keyboard with blurred backdrop */
-  .wordle-ai-thought-panel {
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    max-height: min(45vh, 220px);
-    background: rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid var(--border-color, rgba(255, 255, 255, 0.15));
-    border-bottom: none;
-    border-radius: 8px 8px 0 0;
-    z-index: 10;
-  }
-
-  /* Ensure panel content remains readable on blurred backdrop */
-  .wordle-ai-thought-title {
-    color: inherit;
-  }
-
-  .wordle-ai-thinking {
-    color: inherit;
-    opacity: 0.9;
-  }
-}
