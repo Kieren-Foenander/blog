@@ -10,7 +10,7 @@ import react from '@astrojs/react';
 // https://astro.build/config
 // API route has prerender: false for on-demand execution
 export default defineConfig({
-  site: 'https://example.com',
+  site: 'https://blog.kierenfoenander.dev',
   output: 'static',
   integrations: [
     react({
