@@ -10,7 +10,7 @@ import WordleGameAI from "../../components/Wordle/WordleGameAI.tsx";
 >
   <div class="wordle-ai-wrapper">
     <a href="/wordle" class="wordle-ai-back">← Play yourself</a>
-    <WordleGameAI client:load />
+    <WordleGameAI client:only="react" />
   </div>
 </BaseLayout>
 

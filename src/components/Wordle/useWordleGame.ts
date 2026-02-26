@@ -133,8 +133,6 @@ export function useWordleGame() {
       return;
     }
 
-    console.log('guess', guess);
-    console.log('state.answer', state.answer);
     const fb = evaluateGuess(guess, state.answer);
     dispatch({ type: 'ACCEPT_GUESS', guess, feedback: fb });
   };

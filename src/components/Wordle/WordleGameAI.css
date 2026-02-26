@@ -6,6 +6,9 @@
   margin: 0 auto;
   padding: 1.5rem;
   position: relative;
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
 }
 
 .wordle-ai-game {
@@ -32,10 +35,10 @@
 .wordle-ai-model-select-input {
   padding: 0.5rem 0.75rem;
   font-size: 0.95rem;
-  border: 1px solid var(--border-color, #d3d6da);
+  border: 1px solid var(--border);
   border-radius: 6px;
-  background: var(--bg, #fff);
-  color: inherit;
+  background: var(--bg-card);
+  color: var(--text);
   cursor: pointer;
 }
 

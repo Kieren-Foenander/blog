@@ -5,9 +5,10 @@ import BaseHead from "../components/BaseHead.astro";
 import FormattedDate from "../components/FormattedDate.astro";
 import Sidebar from "../components/Sidebar.astro";
 
-type Props = CollectionEntry<"blog">["data"];
+type Props = CollectionEntry<"blog">["data"] & { readTime?: number };
 
-const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
+const { title, description, pubDate, updatedDate, heroImage, readTime } =
+  Astro.props;
 ---
 
 <html lang="en">
@@ -60,6 +61,9 @@ const { title, description, pubDate, updatedDate, heroImage } = Astro.props;
           <div class="title-block">
             <div class="date">
               <FormattedDate date={pubDate} />
+              {readTime && (
+                <span class="read-time"> · {readTime} min read</span>
+              )}
               {
                 updatedDate && (
                   <div class="last-updated-on">

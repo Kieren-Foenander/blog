@@ -220,7 +220,7 @@ code {
 	background: var(--bg-card);
 	border: 1px solid var(--border);
 	border-radius: 4px;
-	font-size: 0.9em;
+	font-size: 0.8em;
 }
 
 pre {
@@ -229,6 +229,8 @@ pre {
 	border: 1px solid var(--border);
 	border-radius: 8px;
 	overflow-x: auto;
+	font-size: 0.8rem;
+	line-height: 1.5;
 }
 
 pre > code {
@@ -237,6 +239,15 @@ pre > code {
 	padding: 0;
 	background: none;
 	border: none;
+	font-size: inherit;
+}
+
+/* Wordle share grid – preserve line breaks, no code-block styling */
+pre.wordle-share {
+	background: transparent;
+	border: none;
+	padding: 0.5em 0;
+	font-size: 1em;
 }
 
 blockquote {

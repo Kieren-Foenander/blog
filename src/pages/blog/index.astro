@@ -3,6 +3,7 @@ import { Image } from "astro:assets";
 import { getCollection } from "astro:content";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import FormattedDate from "../../components/FormattedDate.astro";
+import { getReadTimeMinutes } from "../../lib/readTime";
 import { SITE_DESCRIPTION, SITE_TITLE } from "../../consts";
 
 const posts = (await getCollection("blog")).sort(
@@ -32,6 +33,10 @@ const posts = (await getCollection("blog")).sort(
             <h3 class="post-title">{post.data.title}</h3>
             <p class="post-date">
               <FormattedDate date={post.data.pubDate} />
+              <span class="post-read-time">
+                {" "}
+                · {post.data.readTime ?? getReadTimeMinutes(post.body ?? "")} min read
+              </span>
             </p>
             {post.data.description && (
               <p class="post-desc">{post.data.description}</p>
@@ -53,11 +58,15 @@ const posts = (await getCollection("blog")).sort(
     list-style: none;
     margin: 0;
     padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
     display: grid;
+    gap: 1.5rem;
     grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    .post-list {
+      grid-template-columns: 1fr;
+    }
   }
 
   .post-card {

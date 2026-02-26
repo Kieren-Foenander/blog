@@ -137,6 +137,27 @@ export default function WordleGame() {
     else addLetter(key);
   };
 
+  const buildShareText = () => {
+    const emojiMap: Record<LetterResult, string> = {
+      absent: '⬛',
+      present: '🟨',
+      correct: '🟩',
+    };
+    const lines = state.feedback.map((row) =>
+      row.map((r) => emojiMap[r]).join('')
+    );
+    return `my word was ${state.answer.toUpperCase()}\n\n${lines.join('\n')}`;
+  };
+
+  const handleCopyResult = async () => {
+    try {
+      await navigator.clipboard.writeText(buildShareText());
+      setMessage('Copied!');
+    } catch {
+      setMessage('Failed to copy');
+    }
+  };
+
   return (
     <div ref={containerRef} className="wordle-game" role="application" aria-label="Wordle game">
       <h2 className="wordle-title">Wordle</h2>
@@ -190,14 +211,37 @@ export default function WordleGame() {
               ? 'You won!'
               : `The word was ${state.answer.toUpperCase()}`}
           </p>
-          <button
-            type="button"
-            className="wordle-new-game"
-            onClick={newGame}
-            autoFocus
-          >
-            New Game
-          </button>
+          <div className="wordle-result-actions">
+            <button
+              type="button"
+              className="wordle-copy-result"
+              onClick={handleCopyResult}
+            >
+              <svg
+                className="wordle-copy-icon"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden
+              >
+                <rect width="14" height="14" x="8" y="8" rx="2" ry="2" />
+                <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2" />
+              </svg>
+              Copy your result and put it in the comments!
+            </button>
+            <button
+              type="button"
+              className="wordle-new-game"
+              onClick={newGame}
+              autoFocus
+            >
+              New Game
+            </button>
+          </div>
         </div>
       )}
 

@@ -1,3 +1,11 @@
+/* Shared root – isolates from prose; use theme text color for dark/light mode */
+.wordle-game,
+.wordle-ai-game {
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  tap-highlight-color: transparent;
+}
+
 .wordle-game {
   display: flex;
   flex-direction: column;
@@ -23,6 +31,7 @@
   padding: 0.5rem 1rem;
   border-radius: 0.25rem;
   font-size: 0.9rem;
+  color: var(--text);
 }
 
 .wordle-message--visible {
@@ -47,11 +56,12 @@
   justify-content: center;
   width: 4rem;
   height: 4rem;
-  border: 0.125rem solid var(--border-color, #d3d6da);
+  border: 0.125rem solid var(--border);
   font-size: 2rem;
   font-weight: 700;
   text-transform: uppercase;
   perspective: 62.5rem;
+  color: var(--text);
 }
 
 .wordle-cell--filled {
@@ -105,10 +115,11 @@
   border-radius: 0.125rem;
 }
 
+/* Front face always has light bg; text stays dark for contrast */
 .wordle-cell-front {
-  background: #fff;
+  background: var(--bg-card);
   border: 0.125rem solid #878a8c;
-  color: #212121;
+  color: var(--text);
   transform: rotateX(0deg);
 }
 
@@ -158,6 +169,31 @@
 .wordle-result p {
   margin: 0 0 1rem;
   font-size: 1.1rem;
+  color: var(--text);
+}
+
+.wordle-copy-result {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6aaa64;
+  background: transparent;
+  border: 0.125rem solid #6aaa64;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+
+.wordle-copy-result:hover {
+  background: rgba(106, 170, 100, 0.1);
+}
+
+.wordle-copy-icon {
+  width: 1.1em;
+  height: 1.1em;
+  flex-shrink: 0;
 }
 
 .wordle-new-game {
@@ -192,9 +228,9 @@
   padding: 0.5rem 1.5rem;
   font-size: 1rem;
   font-weight: 600;
-  color: var(--text-muted, #555);
+  color: var(--text-muted);
   background: transparent;
-  border: 1px solid var(--border-color, #d3d6da);
+  border: 1px solid var(--border);
   border-radius: 0.25rem;
   cursor: pointer;
 }
@@ -235,6 +271,7 @@
   font-weight: 600;
   text-transform: uppercase;
   background: #a7a6a6;
+  color: var(--text);
   border: none;
   border-radius: 0.25rem;
   cursor: pointer;
