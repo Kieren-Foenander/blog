@@ -6,7 +6,7 @@
   "assets": { "binding": "ASSETS", "directory": "./dist" },
   "observability": { "enabled": true },
   "ai": { "binding": "AI" },
-  "vars": { "AI_GATEWAY_ID": "wordle-gateway" },
+  "vars": { "AI_GATEWAY_ID": "kierenfoenander" },
   "kv_namespaces": [
     {
       "binding": "WORDLE_RATE_LIMIT",
