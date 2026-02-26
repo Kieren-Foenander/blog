@@ -21,5 +21,10 @@ export default defineConfig({
     mdx(),
     sitemap(),
   ],
-  adapter: cloudflare(),
+  adapter: cloudflare({
+    platformProxy: {
+      enabled: true,
+      remoteBindings: false,
+    },
+  }),
 });
