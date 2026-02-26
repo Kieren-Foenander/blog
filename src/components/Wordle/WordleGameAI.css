@@ -61,14 +61,39 @@
   overflow: hidden;
 }
 
-.wordle-ai-thought-title {
-  margin: 0;
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
-  font-weight: 600;
+.wordle-ai-thought-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1rem;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
   flex-shrink: 0;
+}
+
+.wordle-ai-thought-title {
+  margin: 0;
+  padding: 0.75rem 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  flex-shrink: 0;
   color: rgba(255, 255, 255, 0.95);
+}
+
+.wordle-ai-stop {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  background: rgba(220, 53, 69, 0.9);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.wordle-ai-stop:hover {
+  background: rgba(200, 35, 51, 1);
 }
 
 .wordle-ai-thought-content {

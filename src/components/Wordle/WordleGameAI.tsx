@@ -139,7 +139,7 @@ export default function WordleGameAI() {
     body: requestBody,
   });
 
-  const { messages, sendMessage, isLoading, error, clear } = useChat(chatOptions);
+  const { messages, sendMessage, stop, isLoading, error, clear } = useChat(chatOptions);
 
   const { guesses, feedback, status, answer, keyboardStatus } =
     useWordleStateFromMessages(messages);
@@ -340,7 +340,19 @@ export default function WordleGameAI() {
       </div>
 
       <div className="wordle-ai-thought-panel">
-        <h3 className={`wordle-ai-thought-title ${isLoading ? 'wordle-ai-loading wordle-ai-loading-text' : ''}`}>AI thinking</h3>
+        <div className="wordle-ai-thought-title-row">
+          <h3 className={`wordle-ai-thought-title ${isLoading ? 'wordle-ai-loading wordle-ai-loading-text' : ''}`}>AI thinking</h3>
+          {isLoading && (
+            <button
+              type="button"
+              className="wordle-ai-stop"
+              onClick={stop}
+              aria-label="Stop AI"
+            >
+              Stop
+            </button>
+          )}
+        </div>
         {error && (
           <div
             className="wordle-ai-error"
