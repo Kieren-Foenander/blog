@@ -2,6 +2,7 @@
 // Import the global.css file here so that it is included on
 // all pages through the use of the <BaseHead /> component.
 import "../styles/global.css";
+import { getImage } from "astro:assets";
 import { ClientRouter } from "astro:transitions";
 import type { ImageMetadata } from "astro";
 import FallbackImage from "../assets/backup.png";
@@ -16,6 +17,17 @@ interface Props {
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 const { title, description, image = FallbackImage } = Astro.props;
+
+// Use getImage() so the image is processed by Sharp at build time and we get
+// the correct output path for og:image. Raw image.src can be a source path
+// that doesn't exist in the built output.
+const optimizedImage = await getImage({
+  src: image,
+  width: 1200,
+  height: 630,
+  format: "png",
+});
+const ogImageUrl = new URL(optimizedImage.src, Astro.site);
 ---
 
 <!-- Global Metadata -->
@@ -90,11 +102,13 @@ const { title, description, image = FallbackImage } = Astro.props;
 <meta property="og:url" content={Astro.url} />
 <meta property="og:title" content={title} />
 <meta property="og:description" content={description} />
-<meta property="og:image" content={new URL(image.src, Astro.url)} />
+<meta property="og:image" content={ogImageUrl} />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 
 <!-- Twitter -->
 <meta property="twitter:card" content="summary_large_image" />
 <meta property="twitter:url" content={Astro.url} />
 <meta property="twitter:title" content={title} />
 <meta property="twitter:description" content={description} />
-<meta property="twitter:image" content={new URL(image.src, Astro.url)} />
+<meta property="twitter:image" content={ogImageUrl} />
