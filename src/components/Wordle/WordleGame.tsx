@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useReducer, useRef, useState } from 'react';
 import { useWordleGame } from './useWordleGame';
 import type { LetterResult } from './types';
 import { MAX_GUESSES, WORD_LENGTH } from './types';
@@ -80,18 +80,25 @@ export default function WordleGame() {
     keyboardStatus,
   } = useWordleGame();
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isAnimating, dispatchAnim] = useReducer(
+    (s: boolean, a: 'start' | 'end') => (a === 'start' ? true : false),
+    false
+  );
   const prevGuessesLenRef = useRef(state.guesses.length);
 
   // Block input during flip animation (~900ms for 5 letters)
   useEffect(() => {
     if (state.guesses.length > prevGuessesLenRef.current) {
-      setIsAnimating(true);
+      let endId: ReturnType<typeof setTimeout>;
       const id = setTimeout(() => {
-        setIsAnimating(false);
+        dispatchAnim('start');
         prevGuessesLenRef.current = state.guesses.length;
-      }, 900);
-      return () => clearTimeout(id);
+        endId = setTimeout(() => dispatchAnim('end'), 900);
+      }, 0);
+      return () => {
+        clearTimeout(id);
+        clearTimeout(endId!);
+      };
     }
     prevGuessesLenRef.current = state.guesses.length;
   }, [state.guesses.length]);
@@ -237,7 +244,6 @@ export default function WordleGame() {
               type="button"
               className="wordle-new-game"
               onClick={newGame}
-              autoFocus
             >
               New Game
             </button>

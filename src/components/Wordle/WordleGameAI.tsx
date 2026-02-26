@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useReducer, useRef, useState } from 'react';
 import { useChat, fetchServerSentEvents, createChatClientOptions } from '@tanstack/ai-react';
 import type { AIProvider } from '../../lib/ai/adapters';
 import type { LetterResult } from './types';
@@ -123,7 +123,8 @@ function Cell({
 
 export default function WordleGameAI() {
   const [provider, setProvider] = useState<AIProvider>('openai');
-  const requestBodyRef = useRef<Record<string, unknown>>({ provider });
+  const [bodyOverrides, setBodyOverrides] = useState<Record<string, unknown>>({});
+  const requestBody = { provider, ...bodyOverrides };
   const chatOptions = createChatClientOptions({
     connection: fetchServerSentEvents('/api/chat', {
       fetchClient: async (url, init) => {
@@ -135,7 +136,7 @@ export default function WordleGameAI() {
         return res;
       },
     }),
-    body: requestBodyRef.current,
+    body: requestBody,
   });
 
   const { messages, sendMessage, isLoading, error, clear } = useChat(chatOptions);
@@ -145,33 +146,38 @@ export default function WordleGameAI() {
 
   const [hasStarted, setHasStarted] = useState(false);
 
-  useEffect(() => {
-    requestBodyRef.current.provider = provider;
-  }, [provider]);
   const thoughtPanelRef = useRef<HTMLDivElement>(null);
+  const shouldAutoScrollRef = useRef(true);
   const prevGuessesLenRef = useRef(guesses.length);
-  const [isAnimating, setIsAnimating] = useState(false);
+  const [isAnimating, dispatchAnim] = useReducer(
+    (s: boolean, a: 'start' | 'end') => (a === 'start' ? true : false),
+    false
+  );
 
   const handleStartGame = () => {
     setHasStarted(true);
-    requestBodyRef.current.newGame = true;
+    setBodyOverrides((prev) => ({ ...prev, newGame: true }));
     sendMessage('Start playing Wordle. Keep going until you win or lose.');
   };
 
   useEffect(() => {
     if (guesses.length > prevGuessesLenRef.current) {
-      setIsAnimating(true);
+      let endId: ReturnType<typeof setTimeout>;
       const id = setTimeout(() => {
-        setIsAnimating(false);
+        dispatchAnim('start');
         prevGuessesLenRef.current = guesses.length;
-      }, 900);
-      return () => clearTimeout(id);
+        endId = setTimeout(() => dispatchAnim('end'), 900);
+      }, 0);
+      return () => {
+        clearTimeout(id);
+        clearTimeout(endId!);
+      };
     }
     prevGuessesLenRef.current = guesses.length;
   }, [guesses.length]);
 
   const handleNewGame = () => {
-    requestBodyRef.current.newGame = true;
+    setBodyOverrides((prev) => ({ ...prev, newGame: true }));
     sendMessage('New game. The board is reset. Start playing Wordle from the beginning.');
   };
 
@@ -180,15 +186,29 @@ export default function WordleGameAI() {
     setHasStarted(false);
   };
 
-  // Clear newGame flag after request so it doesn't persist
+  // Clear newGame flag after request so it doesn't persist (defer to avoid sync setState in effect)
   useEffect(() => {
     if (!isLoading) {
-      delete requestBodyRef.current.newGame;
+      const id = setTimeout(() => {
+        setBodyOverrides((prev) => {
+          const { newGame: _, ...rest } = prev;
+          return rest;
+        });
+      }, 0);
+      return () => clearTimeout(id);
     }
   }, [isLoading]);
 
+  const handleThoughtScroll = useCallback(() => {
+    const el = thoughtPanelRef.current;
+    if (!el) return;
+    const { scrollTop, scrollHeight, clientHeight } = el;
+    const distanceFromBottom = scrollHeight - scrollTop - clientHeight;
+    shouldAutoScrollRef.current = distanceFromBottom <= 60;
+  }, []);
+
   useEffect(() => {
-    if (thoughtPanelRef.current) {
+    if (thoughtPanelRef.current && shouldAutoScrollRef.current) {
       thoughtPanelRef.current.scrollTo({
         top: thoughtPanelRef.current.scrollHeight,
         behavior: 'smooth',
@@ -329,7 +349,7 @@ export default function WordleGameAI() {
             {error.message}
           </div>
         )}
-        <div className="wordle-ai-thought-content" ref={thoughtPanelRef}>
+        <div className="wordle-ai-thought-content" ref={thoughtPanelRef} onScroll={handleThoughtScroll}>
           {messages.map((message) =>
             message.parts.map((part, idx) => {
               if (part.type === 'thinking') {
